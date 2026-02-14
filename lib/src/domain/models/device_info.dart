@@ -24,9 +24,9 @@ class DeviceInfo extends Equatable {
 
   @override
   List<Object?> get props => [
-        deviceTimestamp,
-        gpsAccuracy,
-        isMockLocation,
-        locationProvider,
-      ];
+    deviceTimestamp,
+    gpsAccuracy,
+    isMockLocation,
+    locationProvider,
+  ];
 }

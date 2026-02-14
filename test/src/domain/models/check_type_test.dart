@@ -1,4 +1,4 @@
-import 'package:attendance_mobile/src/domain/models/check_type.dart';
+import 'package:attendance_mobile/attendance_mobile.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

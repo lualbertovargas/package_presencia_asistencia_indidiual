@@ -1,5 +1,4 @@
-import 'package:attendance_mobile/src/application/attendance_state.dart';
-import 'package:attendance_mobile/src/ui/result_page.dart';
+import 'package:attendance_mobile/attendance_mobile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

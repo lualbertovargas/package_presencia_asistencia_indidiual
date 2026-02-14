@@ -1,5 +1,4 @@
-import 'package:attendance_mobile/src/domain/models/models.dart';
-import 'package:attendance_mobile/src/domain/rules/attendance_rules.dart';
+import 'package:attendance_mobile/attendance_mobile.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -7,14 +6,14 @@ void main() {
     final timestamp = DateTime(2024);
 
     AttendanceRecord makeRecord(CheckType type) => AttendanceRecord(
-          userId: 'user-1',
-          attendancePointId: 'point-1',
-          checkType: type,
-          timestamp: timestamp,
-          latitude: 19.4326,
-          longitude: -99.1332,
-          verificationMethod: VerificationMethod.none,
-        );
+      userId: 'user-1',
+      attendancePointId: 'point-1',
+      checkType: type,
+      timestamp: timestamp,
+      latitude: 19.4326,
+      longitude: -99.1332,
+      verificationMethod: VerificationMethod.none,
+    );
 
     test('allows check-in when no previous record', () {
       final errors = AttendanceRules.validate(

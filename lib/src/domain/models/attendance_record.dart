@@ -47,14 +47,14 @@ class AttendanceRecord extends Equatable {
 
   @override
   List<Object?> get props => [
-        userId,
-        attendancePointId,
-        checkType,
-        timestamp,
-        latitude,
-        longitude,
-        verificationMethod,
-        verificationData,
-        deviceInfo,
-      ];
+    userId,
+    attendancePointId,
+    checkType,
+    timestamp,
+    latitude,
+    longitude,
+    verificationMethod,
+    verificationData,
+    deviceInfo,
+  ];
 }

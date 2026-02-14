@@ -16,12 +16,11 @@ class AttendanceResult extends Equatable {
   factory AttendanceResult.failure({
     required String errorCode,
     required String errorMessage,
-  }) =>
-      AttendanceResult._(
-        success: false,
-        errorCode: errorCode,
-        errorMessage: errorMessage,
-      );
+  }) => AttendanceResult._(
+    success: false,
+    errorCode: errorCode,
+    errorMessage: errorMessage,
+  );
 
   /// Whether the attendance was successfully submitted.
   final bool success;

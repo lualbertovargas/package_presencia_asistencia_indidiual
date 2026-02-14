@@ -1,5 +1,4 @@
-import 'package:attendance_mobile/src/domain/models/models.dart';
-import 'package:attendance_mobile/src/domain/rules/geo_rules.dart';
+import 'package:attendance_mobile/attendance_mobile.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

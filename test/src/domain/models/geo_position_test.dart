@@ -1,6 +1,6 @@
 // Test file: non-const constructors used for testing value equality.
 
-import 'package:attendance_mobile/src/domain/models/geo_position.dart';
+import 'package:attendance_mobile/attendance_mobile.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

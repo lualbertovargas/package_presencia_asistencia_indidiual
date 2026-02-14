@@ -29,10 +29,10 @@ class AttendanceConfig extends Equatable {
 
   @override
   List<Object?> get props => [
-        requireQr,
-        requireGeolocation,
-        verificationMethod,
-        geoRadiusOverride,
-        allowMockLocation,
-      ];
+    requireQr,
+    requireGeolocation,
+    verificationMethod,
+    geoRadiusOverride,
+    allowMockLocation,
+  ];
 }

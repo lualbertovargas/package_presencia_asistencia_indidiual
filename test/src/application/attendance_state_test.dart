@@ -1,8 +1,7 @@
 // Test file: non-const constructors used for testing value equality.
 // ignore_for_file: prefer_const_constructors
 
-import 'package:attendance_mobile/src/application/attendance_state.dart';
-import 'package:attendance_mobile/src/domain/models/models.dart';
+import 'package:attendance_mobile/attendance_mobile.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

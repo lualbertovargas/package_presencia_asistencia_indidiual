@@ -1,10 +1,7 @@
 // Test file: non-const constructors used for testing value equality.
 // ignore_for_file: prefer_const_constructors
 
-import 'package:attendance_mobile/src/application/application.dart';
-import 'package:attendance_mobile/src/data/data.dart';
-import 'package:attendance_mobile/src/domain/models/models.dart';
-import 'package:attendance_mobile/src/domain/services/services.dart';
+import 'package:attendance_mobile/attendance_mobile.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -87,14 +84,16 @@ void main() {
 
     test('full flow completes successfully', () async {
       when(() => qrService.scan()).thenAnswer((_) async => qrResult);
-      when(() => repository.getLastRecord(any(), any()))
-          .thenAnswer((_) async => null);
-      when(() => locationService.getCurrentPosition())
-          .thenAnswer((_) async => validPosition);
-      when(() => biometricService.authenticate())
-          .thenAnswer((_) async => true);
-      when(() => repository.submitAttendance(any()))
-          .thenAnswer((_) async => AttendanceResult.success());
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => locationService.getCurrentPosition(),
+      ).thenAnswer((_) async => validPosition);
+      when(() => biometricService.authenticate()).thenAnswer((_) async => true);
+      when(
+        () => repository.submitAttendance(any()),
+      ).thenAnswer((_) async => AttendanceResult.success());
 
       final controller = createController();
       await controller.startFlow();
@@ -162,8 +161,9 @@ void main() {
       );
 
       when(() => qrService.scan()).thenAnswer((_) async => qrResult);
-      when(() => repository.getLastRecord(any(), any()))
-          .thenAnswer((_) async => lastCheckIn);
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => lastCheckIn);
 
       final controller = createController();
       await controller.startFlow();
@@ -175,8 +175,9 @@ void main() {
 
     test('stops at error when check-out without check-in', () async {
       when(() => qrService.scan()).thenAnswer((_) async => qrResult);
-      when(() => repository.getLastRecord(any(), any()))
-          .thenAnswer((_) async => null);
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => null);
 
       final controller = createController(checkType: CheckType.checkOut);
       await controller.startFlow();
@@ -197,10 +198,12 @@ void main() {
       );
 
       when(() => qrService.scan()).thenAnswer((_) async => qrResult);
-      when(() => repository.getLastRecord(any(), any()))
-          .thenAnswer((_) async => null);
-      when(() => locationService.getCurrentPosition())
-          .thenAnswer((_) async => farPosition);
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => locationService.getCurrentPosition(),
+      ).thenAnswer((_) async => farPosition);
 
       final controller = createController();
       await controller.startFlow();
@@ -221,10 +224,12 @@ void main() {
       );
 
       when(() => qrService.scan()).thenAnswer((_) async => qrResult);
-      when(() => repository.getLastRecord(any(), any()))
-          .thenAnswer((_) async => null);
-      when(() => locationService.getCurrentPosition())
-          .thenAnswer((_) async => mockPosition);
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => locationService.getCurrentPosition(),
+      ).thenAnswer((_) async => mockPosition);
 
       final controller = createController();
       await controller.startFlow();
@@ -236,12 +241,15 @@ void main() {
 
     test('stops at error when biometric fails', () async {
       when(() => qrService.scan()).thenAnswer((_) async => qrResult);
-      when(() => repository.getLastRecord(any(), any()))
-          .thenAnswer((_) async => null);
-      when(() => locationService.getCurrentPosition())
-          .thenAnswer((_) async => validPosition);
-      when(() => biometricService.authenticate())
-          .thenAnswer((_) async => false);
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => locationService.getCurrentPosition(),
+      ).thenAnswer((_) async => validPosition);
+      when(
+        () => biometricService.authenticate(),
+      ).thenAnswer((_) async => false);
 
       final controller = createController();
       await controller.startFlow();
@@ -253,12 +261,13 @@ void main() {
 
     test('stops at error when submission fails', () async {
       when(() => qrService.scan()).thenAnswer((_) async => qrResult);
-      when(() => repository.getLastRecord(any(), any()))
-          .thenAnswer((_) async => null);
-      when(() => locationService.getCurrentPosition())
-          .thenAnswer((_) async => validPosition);
-      when(() => biometricService.authenticate())
-          .thenAnswer((_) async => true);
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => locationService.getCurrentPosition(),
+      ).thenAnswer((_) async => validPosition);
+      when(() => biometricService.authenticate()).thenAnswer((_) async => true);
       when(() => repository.submitAttendance(any())).thenAnswer(
         (_) async => AttendanceResult.failure(
           errorCode: 'SERVER_ERROR',
@@ -289,14 +298,16 @@ void main() {
     });
 
     test('skips QR when requireQr is false', () async {
-      when(() => repository.getLastRecord(any(), any()))
-          .thenAnswer((_) async => null);
-      when(() => locationService.getCurrentPosition())
-          .thenAnswer((_) async => validPosition);
-      when(() => biometricService.authenticate())
-          .thenAnswer((_) async => true);
-      when(() => repository.submitAttendance(any()))
-          .thenAnswer((_) async => AttendanceResult.success());
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => locationService.getCurrentPosition(),
+      ).thenAnswer((_) async => validPosition);
+      when(() => biometricService.authenticate()).thenAnswer((_) async => true);
+      when(
+        () => repository.submitAttendance(any()),
+      ).thenAnswer((_) async => AttendanceResult.success());
 
       final controller = createController(
         config: AttendanceConfig(
@@ -314,12 +325,13 @@ void main() {
 
     test('skips geolocation when requireGeolocation is false', () async {
       when(() => qrService.scan()).thenAnswer((_) async => qrResult);
-      when(() => repository.getLastRecord(any(), any()))
-          .thenAnswer((_) async => null);
-      when(() => biometricService.authenticate())
-          .thenAnswer((_) async => true);
-      when(() => repository.submitAttendance(any()))
-          .thenAnswer((_) async => AttendanceResult.success());
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(() => biometricService.authenticate()).thenAnswer((_) async => true);
+      when(
+        () => repository.submitAttendance(any()),
+      ).thenAnswer((_) async => AttendanceResult.success());
 
       final controller = createController(
         config: AttendanceConfig(
@@ -337,12 +349,15 @@ void main() {
 
     test('skips biometric when verificationMethod is none', () async {
       when(() => qrService.scan()).thenAnswer((_) async => qrResult);
-      when(() => repository.getLastRecord(any(), any()))
-          .thenAnswer((_) async => null);
-      when(() => locationService.getCurrentPosition())
-          .thenAnswer((_) async => validPosition);
-      when(() => repository.submitAttendance(any()))
-          .thenAnswer((_) async => AttendanceResult.success());
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => locationService.getCurrentPosition(),
+      ).thenAnswer((_) async => validPosition);
+      when(
+        () => repository.submitAttendance(any()),
+      ).thenAnswer((_) async => AttendanceResult.success());
 
       final controller = createController(
         config: AttendanceConfig(
@@ -360,14 +375,16 @@ void main() {
 
     test('reset returns to idle state', () async {
       when(() => qrService.scan()).thenAnswer((_) async => qrResult);
-      when(() => repository.getLastRecord(any(), any()))
-          .thenAnswer((_) async => null);
-      when(() => locationService.getCurrentPosition())
-          .thenAnswer((_) async => validPosition);
-      when(() => biometricService.authenticate())
-          .thenAnswer((_) async => true);
-      when(() => repository.submitAttendance(any()))
-          .thenAnswer((_) async => AttendanceResult.success());
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => locationService.getCurrentPosition(),
+      ).thenAnswer((_) async => validPosition);
+      when(() => biometricService.authenticate()).thenAnswer((_) async => true);
+      when(
+        () => repository.submitAttendance(any()),
+      ).thenAnswer((_) async => AttendanceResult.success());
 
       final controller = createController();
       await controller.startFlow();

@@ -26,27 +26,23 @@ class AttendanceFlowPage extends StatelessWidget {
       builder: (context, state, _) {
         return switch (state.step) {
           AttendanceStep.idle => const Center(
-              child: Text('Listo para marcar asistencia'),
-            ),
+            child: Text('Listo para marcar asistencia'),
+          ),
           AttendanceStep.scanningQr ||
-          AttendanceStep.validatingQr =>
-            const QrScanPage(),
+          AttendanceStep.validatingQr => const QrScanPage(),
           AttendanceStep.locating ||
-          AttendanceStep.validatingLocation =>
-            const GeoValidationPage(),
+          AttendanceStep.validatingLocation => const GeoValidationPage(),
           AttendanceStep.verifyingIdentity => const IdentityValidationPage(),
           AttendanceStep.submitting => const Center(
-              child: CircularProgressIndicator(),
-            ),
-          AttendanceStep.completed ||
-          AttendanceStep.error =>
-            ResultPage(
-              state: state,
-              onRetry: () {
-                controller.reset();
-                unawaited(controller.startFlow());
-              },
-            ),
+            child: CircularProgressIndicator(),
+          ),
+          AttendanceStep.completed || AttendanceStep.error => ResultPage(
+            state: state,
+            onRetry: () {
+              controller.reset();
+              unawaited(controller.startFlow());
+            },
+          ),
         };
       },
     );

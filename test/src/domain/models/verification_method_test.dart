@@ -1,4 +1,4 @@
-import 'package:attendance_mobile/src/domain/models/verification_method.dart';
+import 'package:attendance_mobile/attendance_mobile.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

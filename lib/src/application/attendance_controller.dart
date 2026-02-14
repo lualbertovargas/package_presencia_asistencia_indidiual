@@ -79,8 +79,7 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
         }
 
         // Step 3: Validate QR rules
-        final qrErrors =
-            QrRules.validate(qrResult: qrResult, point: point);
+        final qrErrors = QrRules.validate(qrResult: qrResult, point: point);
         if (qrErrors.isNotEmpty) {
           value = value.copyWith(
             step: AttendanceStep.error,
@@ -91,8 +90,10 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
       }
 
       // Step 4: Validate attendance rules (no double check-in)
-      final lastRecord =
-          await repository.getLastRecord(userId, point?.id ?? '');
+      final lastRecord = await repository.getLastRecord(
+        userId,
+        point?.id ?? '',
+      );
       final attendanceErrors = AttendanceRules.validate(
         checkType: checkType,
         lastRecord: lastRecord,
