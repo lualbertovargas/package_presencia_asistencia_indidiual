@@ -4,6 +4,7 @@ library;
 
 export 'src/application/application.dart';
 export 'src/data/data.dart';
+export 'src/domain/constants/constants.dart';
 export 'src/domain/models/models.dart';
 export 'src/domain/rules/rules.dart';
 export 'src/domain/services/services.dart';

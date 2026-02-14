@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:attendance_mobile/src/application/attendance_state.dart';
 import 'package:attendance_mobile/src/data/data.dart';
+import 'package:attendance_mobile/src/domain/constants/constants.dart';
 import 'package:attendance_mobile/src/domain/models/models.dart';
 import 'package:attendance_mobile/src/domain/rules/rules.dart';
 import 'package:attendance_mobile/src/domain/services/services.dart';
@@ -27,7 +29,30 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
     this.biometricService,
     this.cameraService,
     this.pointResolver,
-  }) : super(const AttendanceState());
+  }) : assert(
+         !config.requireQr || qrService != null,
+         'qrService must be provided when requireQr is true',
+       ),
+       assert(
+         !config.requireQr || pointResolver != null,
+         'pointResolver must be provided when requireQr is true',
+       ),
+       assert(
+         !config.requireGeolocation || locationService != null,
+         'locationService must be provided when requireGeolocation is true',
+       ),
+       assert(
+         config.verificationMethod != VerificationMethod.biometric ||
+             biometricService != null,
+         'biometricService must be provided when verificationMethod '
+         'is biometric',
+       ),
+       assert(
+         config.verificationMethod != VerificationMethod.selfie ||
+             cameraService != null,
+         'cameraService must be provided when verificationMethod is selfie',
+       ),
+       super(const AttendanceState());
 
   /// Configuration for this attendance flow.
   final AttendanceConfig config;
@@ -62,8 +87,31 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
   /// Callback to resolve an [AttendancePoint] from a QR-scanned ID.
   final AttendancePointResolver? pointResolver;
 
+  bool _cancelled = false;
+
+  /// Cancels the current flow.
+  void cancelFlow() {
+    _cancelled = true;
+    value = value.copyWith(step: AttendanceStep.cancelled);
+  }
+
+  bool _checkCancelled() {
+    if (_cancelled) {
+      value = value.copyWith(step: AttendanceStep.cancelled);
+      return true;
+    }
+    return false;
+  }
+
+  Future<T> _withTimeout<T>(Future<T> future) {
+    final timeout = config.stepTimeout;
+    if (timeout == null) return future;
+    return future.timeout(timeout);
+  }
+
   /// Starts the attendance flow.
   Future<void> startFlow() async {
+    _cancelled = false;
     try {
       value = const AttendanceState(step: AttendanceStep.scanningQr);
 
@@ -72,16 +120,20 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
 
       // Step 1: Scan QR
       if (config.requireQr) {
-        qrResult = await qrService!.scan();
+        qrResult = await _withTimeout(qrService!.scan());
+        if (_checkCancelled()) return;
 
         // Step 2: Resolve attendance point
         value = value.copyWith(step: AttendanceStep.validatingQr);
-        point = await pointResolver!(qrResult.attendancePointId);
+        point = await _withTimeout(
+          pointResolver!(qrResult!.attendancePointId),
+        );
+        if (_checkCancelled()) return;
 
         if (point == null) {
           value = value.copyWith(
             step: AttendanceStep.error,
-            errors: ['POINT_NOT_FOUND'],
+            errors: [ErrorCodes.pointNotFound],
           );
           return;
         }
@@ -97,11 +149,14 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
         }
       }
 
+      if (_checkCancelled()) return;
+
       // Step 4: Validate attendance rules (no double check-in)
-      final lastRecord = await repository.getLastRecord(
-        userId,
-        point?.id ?? '',
+      final lastRecord = await _withTimeout(
+        repository.getLastRecord(userId, point?.id ?? ''),
       );
+      if (_checkCancelled()) return;
+
       final attendanceErrors = AttendanceRules.validate(
         checkType: checkType,
         lastRecord: lastRecord,
@@ -118,12 +173,15 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
       GeoPosition? position;
       if (config.requireGeolocation) {
         value = value.copyWith(step: AttendanceStep.locating);
-        position = await locationService!.getCurrentPosition();
+        position = await _withTimeout(
+          locationService!.getCurrentPosition(),
+        );
+        if (_checkCancelled()) return;
 
         // Step 6: Validate geo rules
         value = value.copyWith(step: AttendanceStep.validatingLocation);
         final geoErrors = GeoRules.validate(
-          position: position,
+          position: position!,
           point: point!,
           config: config,
         );
@@ -136,23 +194,42 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
         }
       }
 
+      if (_checkCancelled()) return;
+
       // Step 7: Verify identity
       String? verificationData;
       if (config.verificationMethod == VerificationMethod.biometric) {
         value = value.copyWith(step: AttendanceStep.verifyingIdentity);
-        final authenticated = await biometricService!.authenticate();
+        final authenticated = await _withTimeout(
+          biometricService!.authenticate(),
+        );
+        if (_checkCancelled()) return;
         if (!authenticated) {
           value = value.copyWith(
             step: AttendanceStep.error,
-            errors: ['BIOMETRIC_FAILED'],
+            errors: [ErrorCodes.biometricFailed],
           );
           return;
         }
       } else if (config.verificationMethod == VerificationMethod.selfie) {
         value = value.copyWith(step: AttendanceStep.verifyingIdentity);
-        final photo = await cameraService!.takePhoto();
+        final photo = await _withTimeout(cameraService!.takePhoto());
+        if (_checkCancelled()) return;
+
+        // Validate photo size
+        if (config.maxPhotoBytes != null &&
+            photo.bytes.length > config.maxPhotoBytes!) {
+          value = value.copyWith(
+            step: AttendanceStep.error,
+            errors: [ErrorCodes.photoTooLarge],
+          );
+          return;
+        }
+
         verificationData = base64Encode(photo.bytes);
       }
+
+      if (_checkCancelled()) return;
 
       // Step 8: Build record
       value = value.copyWith(step: AttendanceStep.submitting);
@@ -178,7 +255,10 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
       );
 
       // Step 9: Submit
-      final result = await repository.submitAttendance(record);
+      final result = await _withTimeout(
+        repository.submitAttendance(record),
+      );
+      if (_checkCancelled()) return;
 
       // Step 10: Result
       if (result.success) {
@@ -192,10 +272,15 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
           errors: [if (result.errorCode != null) result.errorCode!],
         );
       }
+    } on TimeoutException {
+      value = value.copyWith(
+        step: AttendanceStep.error,
+        errors: [ErrorCodes.stepTimeout],
+      );
     } on Exception catch (e) {
       value = value.copyWith(
         step: AttendanceStep.error,
-        errors: ['UNEXPECTED_ERROR: $e'],
+        errors: ['${ErrorCodes.unexpectedErrorPrefix}: $e'],
       );
     }
   }

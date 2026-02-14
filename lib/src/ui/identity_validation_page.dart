@@ -3,17 +3,20 @@ import 'package:flutter/material.dart';
 /// Page displayed while biometric identity is being verified.
 class IdentityValidationPage extends StatelessWidget {
   /// Creates an [IdentityValidationPage].
-  const IdentityValidationPage({super.key});
+  const IdentityValidationPage({required this.label, super.key});
+
+  /// The text label to display.
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('Verificando identidad...'),
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(label),
         ],
       ),
     );

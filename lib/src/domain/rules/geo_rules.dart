@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:attendance_mobile/src/domain/constants/constants.dart';
 import 'package:attendance_mobile/src/domain/models/models.dart';
 
 /// Validation rules for geolocation.
@@ -18,7 +19,7 @@ class GeoRules {
     final errors = <String>[];
 
     if (!config.allowMockLocation && position.isMockLocation) {
-      errors.add('MOCK_LOCATION_DETECTED');
+      errors.add(ErrorCodes.mockLocationDetected);
     }
 
     final radius = config.geoRadiusOverride ?? point.radiusMeters;
@@ -30,7 +31,7 @@ class GeoRules {
     );
 
     if (distance > radius) {
-      errors.add('OUT_OF_RANGE');
+      errors.add(ErrorCodes.outOfRange);
     }
 
     return errors;

@@ -36,7 +36,7 @@ void main() {
         checkType: CheckType.checkIn,
         lastRecord: makeRecord(CheckType.checkIn),
       );
-      expect(errors, contains('DUPLICATE_CHECK_IN'));
+      expect(errors, contains(ErrorCodes.duplicateCheckIn));
     });
 
     test('allows check-out after check-in', () {
@@ -52,7 +52,7 @@ void main() {
         checkType: CheckType.checkOut,
         lastRecord: null,
       );
-      expect(errors, contains('CHECK_OUT_WITHOUT_CHECK_IN'));
+      expect(errors, contains(ErrorCodes.checkOutWithoutCheckIn));
     });
 
     test('returns DUPLICATE_CHECK_OUT when already checked out', () {
@@ -60,7 +60,7 @@ void main() {
         checkType: CheckType.checkOut,
         lastRecord: makeRecord(CheckType.checkOut),
       );
-      expect(errors, contains('DUPLICATE_CHECK_OUT'));
+      expect(errors, contains(ErrorCodes.duplicateCheckOut));
     });
   });
 }

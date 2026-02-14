@@ -10,6 +10,16 @@ class DeviceInfo extends Equatable {
     required this.locationProvider,
   });
 
+  /// Creates a [DeviceInfo] from a map (e.g., from JSON decoding).
+  factory DeviceInfo.fromMap(Map<String, dynamic> map) {
+    return DeviceInfo(
+      deviceTimestamp: DateTime.parse(map['deviceTimestamp'] as String),
+      gpsAccuracy: (map['gpsAccuracy'] as num).toDouble(),
+      isMockLocation: map['isMockLocation'] as bool,
+      locationProvider: map['locationProvider'] as String,
+    );
+  }
+
   /// Device-local timestamp at the moment of attendance.
   final DateTime deviceTimestamp;
 

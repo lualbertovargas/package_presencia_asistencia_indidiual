@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:attendance_mobile/src/application/application.dart';
+import 'package:attendance_mobile/src/ui/attendance_strings.dart';
 import 'package:attendance_mobile/src/ui/geo_validation_page.dart';
 import 'package:attendance_mobile/src/ui/identity_validation_page.dart';
 import 'package:attendance_mobile/src/ui/qr_scan_page.dart';
@@ -13,11 +14,15 @@ class AttendanceFlowPage extends StatelessWidget {
   /// Creates an [AttendanceFlowPage].
   const AttendanceFlowPage({
     required this.controller,
+    this.strings = const AttendanceStrings(),
     super.key,
   });
 
   /// The attendance controller driving the flow.
   final AttendanceController controller;
+
+  /// Configurable UI strings.
+  final AttendanceStrings strings;
 
   @override
   Widget build(BuildContext context) {
@@ -25,14 +30,20 @@ class AttendanceFlowPage extends StatelessWidget {
       valueListenable: controller,
       builder: (context, state, _) {
         return switch (state.step) {
-          AttendanceStep.idle => const Center(
-            child: Text('Listo para marcar asistencia'),
+          AttendanceStep.idle => Center(
+            child: Text(strings.readyToMark),
           ),
           AttendanceStep.scanningQr ||
-          AttendanceStep.validatingQr => const QrScanPage(),
+          AttendanceStep.validatingQr => QrScanPage(
+            label: strings.scanningQr,
+          ),
           AttendanceStep.locating ||
-          AttendanceStep.validatingLocation => const GeoValidationPage(),
-          AttendanceStep.verifyingIdentity => const IdentityValidationPage(),
+          AttendanceStep.validatingLocation => GeoValidationPage(
+            label: strings.validatingLocation,
+          ),
+          AttendanceStep.verifyingIdentity => IdentityValidationPage(
+            label: strings.verifyingIdentity,
+          ),
           AttendanceStep.submitting => const Center(
             child: CircularProgressIndicator(),
           ),
@@ -42,6 +53,12 @@ class AttendanceFlowPage extends StatelessWidget {
               controller.reset();
               unawaited(controller.startFlow());
             },
+            successText: strings.attendanceRegistered,
+            errorText: strings.error,
+            retryText: strings.retry,
+          ),
+          AttendanceStep.cancelled => Center(
+            child: Text(strings.cancelled),
           ),
         };
       },

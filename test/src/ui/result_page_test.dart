@@ -10,7 +10,13 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ResultPage(state: state, onRetry: () {}),
+            body: ResultPage(
+              state: state,
+              onRetry: () {},
+              successText: 'Asistencia registrada',
+              errorText: 'Error',
+              retryText: 'Reintentar',
+            ),
           ),
         ),
       );
@@ -29,7 +35,13 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ResultPage(state: state, onRetry: () {}),
+            body: ResultPage(
+              state: state,
+              onRetry: () {},
+              successText: 'Asistencia registrada',
+              errorText: 'Error',
+              retryText: 'Reintentar',
+            ),
           ),
         ),
       );
@@ -53,6 +65,9 @@ void main() {
             body: ResultPage(
               state: state,
               onRetry: () => retryCalled = true,
+              successText: 'Asistencia registrada',
+              errorText: 'Error',
+              retryText: 'Reintentar',
             ),
           ),
         ),
@@ -60,6 +75,26 @@ void main() {
 
       await tester.tap(find.text('Reintentar'));
       expect(retryCalled, isTrue);
+    });
+
+    testWidgets('renders custom strings', (tester) async {
+      const state = AttendanceState(step: AttendanceStep.completed);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ResultPage(
+              state: state,
+              onRetry: () {},
+              successText: 'Attendance registered',
+              errorText: 'Failure',
+              retryText: 'Try again',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Attendance registered'), findsOneWidget);
     });
   });
 }

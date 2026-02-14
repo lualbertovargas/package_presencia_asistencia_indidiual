@@ -51,7 +51,7 @@ void main() {
         point: point,
         config: config,
       );
-      expect(errors, contains('OUT_OF_RANGE'));
+      expect(errors, contains(ErrorCodes.outOfRange));
     });
 
     test('returns MOCK_LOCATION_DETECTED when mock and not allowed', () {
@@ -69,7 +69,7 @@ void main() {
         point: point,
         config: config,
       );
-      expect(errors, contains('MOCK_LOCATION_DETECTED'));
+      expect(errors, contains(ErrorCodes.mockLocationDetected));
     });
 
     test('does not flag mock when allowMockLocation is true', () {
@@ -94,7 +94,7 @@ void main() {
         point: point,
         config: mockConfig,
       );
-      expect(errors, isNot(contains('MOCK_LOCATION_DETECTED')));
+      expect(errors, isNot(contains(ErrorCodes.mockLocationDetected)));
     });
 
     test('uses geoRadiusOverride when provided', () {
@@ -120,7 +120,7 @@ void main() {
         point: point,
         config: overrideConfig,
       );
-      expect(errors, isNot(contains('OUT_OF_RANGE')));
+      expect(errors, isNot(contains(ErrorCodes.outOfRange)));
     });
 
     test('can return multiple errors at once', () {
@@ -139,8 +139,8 @@ void main() {
         point: point,
         config: config,
       );
-      expect(errors, contains('MOCK_LOCATION_DETECTED'));
-      expect(errors, contains('OUT_OF_RANGE'));
+      expect(errors, contains(ErrorCodes.mockLocationDetected));
+      expect(errors, contains(ErrorCodes.outOfRange));
     });
   });
 

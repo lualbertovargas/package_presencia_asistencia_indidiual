@@ -18,6 +18,25 @@ class AttendanceRecord extends Equatable {
     this.deviceInfo,
   });
 
+  /// Creates an [AttendanceRecord] from a map (e.g., from JSON decoding).
+  factory AttendanceRecord.fromMap(Map<String, dynamic> map) {
+    return AttendanceRecord(
+      userId: map['userId'] as String,
+      attendancePointId: map['attendancePointId'] as String,
+      checkType: CheckType.values.byName(map['checkType'] as String),
+      timestamp: DateTime.parse(map['timestamp'] as String),
+      latitude: (map['latitude'] as num).toDouble(),
+      longitude: (map['longitude'] as num).toDouble(),
+      verificationMethod: VerificationMethod.values.byName(
+        map['verificationMethod'] as String,
+      ),
+      verificationData: map['verificationData'] as String?,
+      deviceInfo: map['deviceInfo'] != null
+          ? DeviceInfo.fromMap(map['deviceInfo'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+
   /// ID of the user marking attendance.
   final String userId;
 

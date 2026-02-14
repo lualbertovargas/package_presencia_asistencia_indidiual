@@ -1,3 +1,4 @@
+import 'package:attendance_mobile/src/domain/constants/constants.dart';
 import 'package:attendance_mobile/src/domain/models/models.dart';
 
 /// Validation rules for attendance flow logic.
@@ -15,17 +16,17 @@ class AttendanceRules {
     if (checkType == CheckType.checkIn &&
         lastRecord != null &&
         lastRecord.checkType == CheckType.checkIn) {
-      errors.add('DUPLICATE_CHECK_IN');
+      errors.add(ErrorCodes.duplicateCheckIn);
     }
 
     if (checkType == CheckType.checkOut && lastRecord == null) {
-      errors.add('CHECK_OUT_WITHOUT_CHECK_IN');
+      errors.add(ErrorCodes.checkOutWithoutCheckIn);
     }
 
     if (checkType == CheckType.checkOut &&
         lastRecord != null &&
         lastRecord.checkType == CheckType.checkOut) {
-      errors.add('DUPLICATE_CHECK_OUT');
+      errors.add(ErrorCodes.duplicateCheckOut);
     }
 
     return errors;

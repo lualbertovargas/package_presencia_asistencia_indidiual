@@ -90,6 +90,70 @@ void main() {
       expect(a, isNot(equals(b)));
     });
 
+    group('fromMap', () {
+      test('round-trip toMap/fromMap produces equal object', () {
+        final original = AttendanceRecord(
+          userId: 'user-1',
+          attendancePointId: 'point-1',
+          checkType: CheckType.checkIn,
+          timestamp: timestamp,
+          latitude: 19.4326,
+          longitude: -99.1332,
+          verificationMethod: VerificationMethod.biometric,
+          verificationData: 'bio-token',
+          deviceInfo: DeviceInfo(
+            deviceTimestamp: timestamp,
+            gpsAccuracy: 5,
+            isMockLocation: false,
+            locationProvider: 'gps',
+          ),
+        );
+
+        final restored = AttendanceRecord.fromMap(original.toMap());
+        expect(restored, equals(original));
+      });
+
+      test('fromMap with null optional fields', () {
+        final map = <String, dynamic>{
+          'userId': 'user-1',
+          'attendancePointId': 'point-1',
+          'checkType': 'checkOut',
+          'timestamp': timestamp.toIso8601String(),
+          'latitude': 19.4326,
+          'longitude': -99.1332,
+          'verificationMethod': 'none',
+        };
+
+        final record = AttendanceRecord.fromMap(map);
+        expect(record.verificationData, isNull);
+        expect(record.deviceInfo, isNull);
+        expect(record.checkType, CheckType.checkOut);
+      });
+
+      test('fromMap with nested deviceInfo', () {
+        final map = <String, dynamic>{
+          'userId': 'user-1',
+          'attendancePointId': 'point-1',
+          'checkType': 'checkIn',
+          'timestamp': timestamp.toIso8601String(),
+          'latitude': 19,
+          'longitude': -99,
+          'verificationMethod': 'selfie',
+          'deviceInfo': <String, dynamic>{
+            'deviceTimestamp': timestamp.toIso8601String(),
+            'gpsAccuracy': 10,
+            'isMockLocation': true,
+            'locationProvider': 'network',
+          },
+        };
+
+        final record = AttendanceRecord.fromMap(map);
+        expect(record.deviceInfo, isNotNull);
+        expect(record.deviceInfo!.locationProvider, 'network');
+        expect(record.latitude, 19.0);
+      });
+    });
+
     group('toMap', () {
       test('returns all required fields', () {
         final record = AttendanceRecord(

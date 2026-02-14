@@ -1,3 +1,4 @@
+import 'package:attendance_mobile/src/domain/constants/constants.dart';
 import 'package:attendance_mobile/src/domain/models/models.dart';
 
 /// Validation rules for QR code scanning.
@@ -12,12 +13,12 @@ class QrRules {
     final errors = <String>[];
 
     if (qrResult.attendancePointId != point.id) {
-      errors.add('QR_POINT_MISMATCH');
+      errors.add(ErrorCodes.qrPointMismatch);
     }
 
     if (qrResult.expiresAt != null &&
         qrResult.scannedAt.isAfter(qrResult.expiresAt!)) {
-      errors.add('QR_EXPIRED');
+      errors.add(ErrorCodes.qrExpired);
     }
 
     return errors;

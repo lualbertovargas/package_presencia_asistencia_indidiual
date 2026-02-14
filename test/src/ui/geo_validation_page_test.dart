@@ -6,11 +6,27 @@ void main() {
   group('GeoValidationPage', () {
     testWidgets('renders progress indicator and text', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: GeoValidationPage())),
+        const MaterialApp(
+          home: Scaffold(
+            body: GeoValidationPage(label: 'Validando ubicacion...'),
+          ),
+        ),
       );
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(find.text('Validando ubicacion...'), findsOneWidget);
+    });
+
+    testWidgets('renders custom label', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: GeoValidationPage(label: 'Validating location...'),
+          ),
+        ),
+      );
+
+      expect(find.text('Validating location...'), findsOneWidget);
     });
   });
 }

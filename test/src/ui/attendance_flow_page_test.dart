@@ -152,5 +152,37 @@ void main() {
       expect(find.text('Reintentar'), findsOneWidget);
       controller.dispose();
     });
+
+    testWidgets('renders cancelled state text', (tester) async {
+      final controller = createController();
+      await tester.pumpWidget(buildPage(controller));
+
+      controller.value = const AttendanceState(
+        step: AttendanceStep.cancelled,
+      );
+      await tester.pump();
+
+      expect(find.text('Operacion cancelada'), findsOneWidget);
+      controller.dispose();
+    });
+
+    testWidgets('uses custom strings', (tester) async {
+      final controller = createController();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AttendanceFlowPage(
+              controller: controller,
+              strings: const AttendanceStrings(
+                readyToMark: 'Ready',
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Ready'), findsOneWidget);
+      controller.dispose();
+    });
   });
 }

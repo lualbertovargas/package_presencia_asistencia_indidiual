@@ -29,6 +29,9 @@ enum AttendanceStep {
 
   /// An error occurred during the flow.
   error,
+
+  /// The flow was cancelled by the user.
+  cancelled,
 }
 
 /// State of the attendance flow.

@@ -50,7 +50,7 @@ void main() {
 
   group('AttendanceStep', () {
     test('has expected values', () {
-      expect(AttendanceStep.values, hasLength(9));
+      expect(AttendanceStep.values, hasLength(10));
     });
   });
 }

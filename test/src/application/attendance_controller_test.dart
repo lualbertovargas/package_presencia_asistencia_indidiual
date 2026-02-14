@@ -123,7 +123,7 @@ void main() {
       await controller.startFlow();
 
       expect(controller.value.step, AttendanceStep.error);
-      expect(controller.value.errors, contains('POINT_NOT_FOUND'));
+      expect(controller.value.errors, contains(ErrorCodes.pointNotFound));
       addTeardownLater(controller);
     });
 
@@ -138,7 +138,7 @@ void main() {
       await controller.startFlow();
 
       expect(controller.value.step, AttendanceStep.error);
-      expect(controller.value.errors, contains('QR_POINT_MISMATCH'));
+      expect(controller.value.errors, contains(ErrorCodes.qrPointMismatch));
       addTeardownLater(controller);
     });
 
@@ -154,7 +154,7 @@ void main() {
       await controller.startFlow();
 
       expect(controller.value.step, AttendanceStep.error);
-      expect(controller.value.errors, contains('QR_EXPIRED'));
+      expect(controller.value.errors, contains(ErrorCodes.qrExpired));
       addTeardownLater(controller);
     });
 
@@ -178,7 +178,7 @@ void main() {
       await controller.startFlow();
 
       expect(controller.value.step, AttendanceStep.error);
-      expect(controller.value.errors, contains('DUPLICATE_CHECK_IN'));
+      expect(controller.value.errors, contains(ErrorCodes.duplicateCheckIn));
       addTeardownLater(controller);
     });
 
@@ -192,7 +192,10 @@ void main() {
       await controller.startFlow();
 
       expect(controller.value.step, AttendanceStep.error);
-      expect(controller.value.errors, contains('CHECK_OUT_WITHOUT_CHECK_IN'));
+      expect(
+        controller.value.errors,
+        contains(ErrorCodes.checkOutWithoutCheckIn),
+      );
       addTeardownLater(controller);
     });
 
@@ -218,7 +221,7 @@ void main() {
       await controller.startFlow();
 
       expect(controller.value.step, AttendanceStep.error);
-      expect(controller.value.errors, contains('OUT_OF_RANGE'));
+      expect(controller.value.errors, contains(ErrorCodes.outOfRange));
       addTeardownLater(controller);
     });
 
@@ -244,7 +247,10 @@ void main() {
       await controller.startFlow();
 
       expect(controller.value.step, AttendanceStep.error);
-      expect(controller.value.errors, contains('MOCK_LOCATION_DETECTED'));
+      expect(
+        controller.value.errors,
+        contains(ErrorCodes.mockLocationDetected),
+      );
       addTeardownLater(controller);
     });
 
@@ -264,7 +270,7 @@ void main() {
       await controller.startFlow();
 
       expect(controller.value.step, AttendanceStep.error);
-      expect(controller.value.errors, contains('BIOMETRIC_FAILED'));
+      expect(controller.value.errors, contains(ErrorCodes.biometricFailed));
       addTeardownLater(controller);
     });
 
@@ -301,7 +307,7 @@ void main() {
       expect(controller.value.step, AttendanceStep.error);
       expect(
         controller.value.errors.first,
-        contains('UNEXPECTED_ERROR'),
+        contains(ErrorCodes.unexpectedErrorPrefix),
       );
       addTeardownLater(controller);
     });
@@ -444,7 +450,10 @@ void main() {
       await controller.startFlow();
 
       expect(controller.value.step, AttendanceStep.error);
-      expect(controller.value.errors.first, contains('UNEXPECTED_ERROR'));
+      expect(
+        controller.value.errors.first,
+        contains(ErrorCodes.unexpectedErrorPrefix),
+      );
       addTeardownLater(controller);
     });
 
@@ -517,6 +526,236 @@ void main() {
       expect(controller.value.errors, isEmpty);
       expect(controller.value.record, isNull);
       addTeardownLater(controller);
+    });
+
+    group('cancelFlow', () {
+      test('sets state to cancelled', () {
+        final controller = createController()..cancelFlow();
+
+        expect(controller.value.step, AttendanceStep.cancelled);
+        addTeardownLater(controller);
+      });
+
+      test('flag resets on new startFlow', () async {
+        when(() => qrService.scan()).thenAnswer((_) async => qrResult);
+        when(
+          () => repository.getLastRecord(any(), any()),
+        ).thenAnswer((_) async => null);
+        when(
+          () => locationService.getCurrentPosition(),
+        ).thenAnswer((_) async => validPosition);
+        when(
+          () => biometricService.authenticate(),
+        ).thenAnswer((_) async => true);
+        when(
+          () => repository.submitAttendance(any()),
+        ).thenAnswer((_) async => AttendanceResult.success());
+
+        final controller = createController()..cancelFlow();
+        expect(controller.value.step, AttendanceStep.cancelled);
+
+        await controller.startFlow();
+        expect(controller.value.step, AttendanceStep.completed);
+        addTeardownLater(controller);
+      });
+    });
+
+    group('timeout', () {
+      test('produces STEP_TIMEOUT when step exceeds timeout', () async {
+        when(() => qrService.scan()).thenAnswer(
+          (_) async {
+            await Future<void>.delayed(const Duration(milliseconds: 50));
+            return qrResult;
+          },
+        );
+
+        final controller = AttendanceController(
+          config: AttendanceConfig(
+            requireQr: true,
+            requireGeolocation: false,
+            verificationMethod: VerificationMethod.none,
+            stepTimeout: const Duration(milliseconds: 1),
+          ),
+          userId: 'user-1',
+          checkType: CheckType.checkIn,
+          repository: repository,
+          qrService: qrService,
+          pointResolver: (_) async => point,
+        );
+        await controller.startFlow();
+
+        expect(controller.value.step, AttendanceStep.error);
+        expect(controller.value.errors, contains(ErrorCodes.stepTimeout));
+        addTeardownLater(controller);
+      });
+    });
+
+    group('photo size validation', () {
+      test('produces PHOTO_TOO_LARGE when photo exceeds limit', () async {
+        final bigPhoto = PhotoCapture(
+          bytes: Uint8List(1000),
+          mimeType: 'image/jpeg',
+          timestamp: DateTime(2024),
+        );
+
+        when(() => qrService.scan()).thenAnswer((_) async => qrResult);
+        when(
+          () => repository.getLastRecord(any(), any()),
+        ).thenAnswer((_) async => null);
+        when(
+          () => locationService.getCurrentPosition(),
+        ).thenAnswer((_) async => validPosition);
+        when(() => cameraService.takePhoto()).thenAnswer((_) async => bigPhoto);
+
+        final controller = AttendanceController(
+          config: AttendanceConfig(
+            requireQr: true,
+            requireGeolocation: true,
+            verificationMethod: VerificationMethod.selfie,
+            maxPhotoBytes: 500,
+          ),
+          userId: 'user-1',
+          checkType: CheckType.checkIn,
+          repository: repository,
+          qrService: qrService,
+          locationService: locationService,
+          biometricService: biometricService,
+          cameraService: cameraService,
+          pointResolver: (_) async => point,
+        );
+        await controller.startFlow();
+
+        expect(controller.value.step, AttendanceStep.error);
+        expect(controller.value.errors, contains(ErrorCodes.photoTooLarge));
+        addTeardownLater(controller);
+      });
+
+      test('completes when photo is within limit', () async {
+        final smallPhoto = PhotoCapture(
+          bytes: Uint8List(100),
+          mimeType: 'image/jpeg',
+          timestamp: DateTime(2024),
+        );
+
+        when(() => qrService.scan()).thenAnswer((_) async => qrResult);
+        when(
+          () => repository.getLastRecord(any(), any()),
+        ).thenAnswer((_) async => null);
+        when(
+          () => locationService.getCurrentPosition(),
+        ).thenAnswer((_) async => validPosition);
+        when(
+          () => cameraService.takePhoto(),
+        ).thenAnswer((_) async => smallPhoto);
+        when(
+          () => repository.submitAttendance(any()),
+        ).thenAnswer((_) async => AttendanceResult.success());
+
+        final controller = AttendanceController(
+          config: AttendanceConfig(
+            requireQr: true,
+            requireGeolocation: true,
+            verificationMethod: VerificationMethod.selfie,
+            maxPhotoBytes: 500,
+          ),
+          userId: 'user-1',
+          checkType: CheckType.checkIn,
+          repository: repository,
+          qrService: qrService,
+          locationService: locationService,
+          biometricService: biometricService,
+          cameraService: cameraService,
+          pointResolver: (_) async => point,
+        );
+        await controller.startFlow();
+
+        expect(controller.value.step, AttendanceStep.completed);
+        addTeardownLater(controller);
+      });
+    });
+
+    group('constructor asserts', () {
+      test('asserts qrService when requireQr is true', () {
+        expect(
+          () => AttendanceController(
+            config: AttendanceConfig(
+              requireQr: true,
+              requireGeolocation: false,
+              verificationMethod: VerificationMethod.none,
+            ),
+            userId: 'user-1',
+            checkType: CheckType.checkIn,
+            repository: repository,
+            pointResolver: (_) async => null,
+          ),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test('asserts pointResolver when requireQr is true', () {
+        expect(
+          () => AttendanceController(
+            config: AttendanceConfig(
+              requireQr: true,
+              requireGeolocation: false,
+              verificationMethod: VerificationMethod.none,
+            ),
+            userId: 'user-1',
+            checkType: CheckType.checkIn,
+            repository: repository,
+            qrService: qrService,
+          ),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test('asserts locationService when requireGeolocation is true', () {
+        expect(
+          () => AttendanceController(
+            config: AttendanceConfig(
+              requireQr: false,
+              requireGeolocation: true,
+              verificationMethod: VerificationMethod.none,
+            ),
+            userId: 'user-1',
+            checkType: CheckType.checkIn,
+            repository: repository,
+          ),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test('asserts biometricService when verificationMethod is biometric', () {
+        expect(
+          () => AttendanceController(
+            config: AttendanceConfig(
+              requireQr: false,
+              requireGeolocation: false,
+              verificationMethod: VerificationMethod.biometric,
+            ),
+            userId: 'user-1',
+            checkType: CheckType.checkIn,
+            repository: repository,
+          ),
+          throwsA(isA<AssertionError>()),
+        );
+      });
+
+      test('asserts cameraService when verificationMethod is selfie', () {
+        expect(
+          () => AttendanceController(
+            config: AttendanceConfig(
+              requireQr: false,
+              requireGeolocation: false,
+              verificationMethod: VerificationMethod.selfie,
+            ),
+            userId: 'user-1',
+            checkType: CheckType.checkIn,
+            repository: repository,
+          ),
+          throwsA(isA<AssertionError>()),
+        );
+      });
     });
   });
 }

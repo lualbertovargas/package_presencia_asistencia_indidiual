@@ -51,6 +51,32 @@ void main() {
       expect(a, isNot(equals(b)));
     });
 
+    group('fromMap', () {
+      test('round-trip toMap/fromMap produces equal object', () {
+        final original = DeviceInfo(
+          deviceTimestamp: timestamp,
+          gpsAccuracy: 5,
+          isMockLocation: false,
+          locationProvider: 'gps',
+        );
+
+        final restored = DeviceInfo.fromMap(original.toMap());
+        expect(restored, equals(original));
+      });
+
+      test('handles int gpsAccuracy from JSON decoder', () {
+        final map = <String, dynamic>{
+          'deviceTimestamp': timestamp.toIso8601String(),
+          'gpsAccuracy': 5,
+          'isMockLocation': false,
+          'locationProvider': 'gps',
+        };
+
+        final info = DeviceInfo.fromMap(map);
+        expect(info.gpsAccuracy, 5.0);
+      });
+    });
+
     test('toMap returns correct map', () {
       final info = DeviceInfo(
         deviceTimestamp: timestamp,

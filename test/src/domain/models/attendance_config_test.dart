@@ -50,6 +50,44 @@ void main() {
       expect(config.geoRadiusOverride, 200);
     });
 
+    test('stepTimeout is optional and defaults to null', () {
+      final config = AttendanceConfig(
+        requireQr: true,
+        requireGeolocation: true,
+        verificationMethod: VerificationMethod.none,
+      );
+      expect(config.stepTimeout, isNull);
+    });
+
+    test('stepTimeout can be set', () {
+      final config = AttendanceConfig(
+        requireQr: true,
+        requireGeolocation: true,
+        verificationMethod: VerificationMethod.none,
+        stepTimeout: const Duration(seconds: 10),
+      );
+      expect(config.stepTimeout, const Duration(seconds: 10));
+    });
+
+    test('maxPhotoBytes is optional and defaults to null', () {
+      final config = AttendanceConfig(
+        requireQr: true,
+        requireGeolocation: true,
+        verificationMethod: VerificationMethod.none,
+      );
+      expect(config.maxPhotoBytes, isNull);
+    });
+
+    test('maxPhotoBytes can be set', () {
+      final config = AttendanceConfig(
+        requireQr: true,
+        requireGeolocation: true,
+        verificationMethod: VerificationMethod.selfie,
+        maxPhotoBytes: 1024 * 1024,
+      );
+      expect(config.maxPhotoBytes, 1024 * 1024);
+    });
+
     test('different verificationMethod means not equal', () {
       final a = AttendanceConfig(
         requireQr: true,

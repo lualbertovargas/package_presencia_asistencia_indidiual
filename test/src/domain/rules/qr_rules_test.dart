@@ -28,7 +28,7 @@ void main() {
       );
 
       final errors = QrRules.validate(qrResult: qr, point: point);
-      expect(errors, contains('QR_POINT_MISMATCH'));
+      expect(errors, contains(ErrorCodes.qrPointMismatch));
     });
 
     test('returns QR_EXPIRED when scannedAt is after expiresAt', () {
@@ -39,7 +39,7 @@ void main() {
       );
 
       final errors = QrRules.validate(qrResult: qr, point: point);
-      expect(errors, contains('QR_EXPIRED'));
+      expect(errors, contains(ErrorCodes.qrExpired));
     });
 
     test('does not return QR_EXPIRED when expiresAt is null', () {
@@ -49,7 +49,7 @@ void main() {
       );
 
       final errors = QrRules.validate(qrResult: qr, point: point);
-      expect(errors, isNot(contains('QR_EXPIRED')));
+      expect(errors, isNot(contains(ErrorCodes.qrExpired)));
     });
 
     test('does not return QR_EXPIRED when scannedAt is before expiresAt', () {
@@ -60,7 +60,7 @@ void main() {
       );
 
       final errors = QrRules.validate(qrResult: qr, point: point);
-      expect(errors, isNot(contains('QR_EXPIRED')));
+      expect(errors, isNot(contains(ErrorCodes.qrExpired)));
     });
 
     test('can return multiple errors at once', () {
@@ -72,8 +72,8 @@ void main() {
 
       final errors = QrRules.validate(qrResult: qr, point: point);
       expect(errors, hasLength(2));
-      expect(errors, contains('QR_POINT_MISMATCH'));
-      expect(errors, contains('QR_EXPIRED'));
+      expect(errors, contains(ErrorCodes.qrPointMismatch));
+      expect(errors, contains(ErrorCodes.qrExpired));
     });
   });
 }

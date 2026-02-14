@@ -10,6 +10,8 @@ class AttendanceConfig extends Equatable {
     required this.verificationMethod,
     this.geoRadiusOverride,
     this.allowMockLocation = false,
+    this.stepTimeout,
+    this.maxPhotoBytes,
   });
 
   /// Whether a QR code scan is required.
@@ -27,6 +29,18 @@ class AttendanceConfig extends Equatable {
   /// Whether to allow mock/fake locations (for testing).
   final bool allowMockLocation;
 
+  /// Optional timeout for each async step.
+  ///
+  /// When set, each service call will fail with `STEP_TIMEOUT`
+  /// if it takes longer than this duration.
+  final Duration? stepTimeout;
+
+  /// Optional maximum photo size in bytes.
+  ///
+  /// When set, a selfie that exceeds this limit will fail with
+  /// `PHOTO_TOO_LARGE`.
+  final int? maxPhotoBytes;
+
   @override
   List<Object?> get props => [
     requireQr,
@@ -34,5 +48,7 @@ class AttendanceConfig extends Equatable {
     verificationMethod,
     geoRadiusOverride,
     allowMockLocation,
+    stepTimeout,
+    maxPhotoBytes,
   ];
 }

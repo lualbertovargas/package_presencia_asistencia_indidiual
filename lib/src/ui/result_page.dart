@@ -7,6 +7,9 @@ class ResultPage extends StatelessWidget {
   const ResultPage({
     required this.state,
     required this.onRetry,
+    required this.successText,
+    required this.errorText,
+    required this.retryText,
     super.key,
   });
 
@@ -15,6 +18,15 @@ class ResultPage extends StatelessWidget {
 
   /// Callback invoked when the user taps retry.
   final VoidCallback onRetry;
+
+  /// Text shown on successful attendance.
+  final String successText;
+
+  /// Text shown on error.
+  final String errorText;
+
+  /// Text on the retry button.
+  final String retryText;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +43,7 @@ class ResultPage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            isSuccess ? 'Asistencia registrada' : 'Error',
+            isSuccess ? successText : errorText,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           if (!isSuccess && state.errors.isNotEmpty) ...[
@@ -40,7 +52,7 @@ class ResultPage extends StatelessWidget {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: onRetry,
-              child: const Text('Reintentar'),
+              child: Text(retryText),
             ),
           ],
         ],
