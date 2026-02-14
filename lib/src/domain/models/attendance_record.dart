@@ -45,6 +45,19 @@ class AttendanceRecord extends Equatable {
   /// Optional device info for anti-fraud purposes.
   final DeviceInfo? deviceInfo;
 
+  /// Converts this [AttendanceRecord] to a map ready for serialization.
+  Map<String, dynamic> toMap() => {
+    'userId': userId,
+    'attendancePointId': attendancePointId,
+    'checkType': checkType.name,
+    'timestamp': timestamp.toIso8601String(),
+    'latitude': latitude,
+    'longitude': longitude,
+    'verificationMethod': verificationMethod.name,
+    if (verificationData != null) 'verificationData': verificationData,
+    if (deviceInfo != null) 'deviceInfo': deviceInfo!.toMap(),
+  };
+
   @override
   List<Object?> get props => [
     userId,

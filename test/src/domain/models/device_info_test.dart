@@ -50,5 +50,23 @@ void main() {
       );
       expect(a, isNot(equals(b)));
     });
+
+    test('toMap returns correct map', () {
+      final info = DeviceInfo(
+        deviceTimestamp: timestamp,
+        gpsAccuracy: 5,
+        isMockLocation: false,
+        locationProvider: 'gps',
+      );
+
+      final map = info.toMap();
+
+      expect(map, {
+        'deviceTimestamp': timestamp.toIso8601String(),
+        'gpsAccuracy': 5.0,
+        'isMockLocation': false,
+        'locationProvider': 'gps',
+      });
+    });
   });
 }

@@ -22,6 +22,14 @@ class DeviceInfo extends Equatable {
   /// The location provider used (e.g., 'gps', 'network').
   final String locationProvider;
 
+  /// Converts this [DeviceInfo] to a map ready for serialization.
+  Map<String, dynamic> toMap() => {
+    'deviceTimestamp': deviceTimestamp.toIso8601String(),
+    'gpsAccuracy': gpsAccuracy,
+    'isMockLocation': isMockLocation,
+    'locationProvider': locationProvider,
+  };
+
   @override
   List<Object?> get props => [
     deviceTimestamp,

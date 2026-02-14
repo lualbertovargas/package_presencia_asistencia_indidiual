@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:attendance_mobile/src/application/attendance_state.dart';
 import 'package:attendance_mobile/src/data/data.dart';
 import 'package:attendance_mobile/src/domain/models/models.dart';
@@ -23,6 +25,7 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
     this.qrService,
     this.locationService,
     this.biometricService,
+    this.cameraService,
     this.pointResolver,
   }) : super(const AttendanceState());
 
@@ -50,6 +53,11 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
   /// Required when `AttendanceConfig.verificationMethod` is
   /// [VerificationMethod.biometric].
   final BiometricService? biometricService;
+
+  /// Service for camera photo capture.
+  /// Required when `AttendanceConfig.verificationMethod` is
+  /// [VerificationMethod.selfie].
+  final CameraService? cameraService;
 
   /// Callback to resolve an [AttendancePoint] from a QR-scanned ID.
   final AttendancePointResolver? pointResolver;
@@ -129,6 +137,7 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
       }
 
       // Step 7: Verify identity
+      String? verificationData;
       if (config.verificationMethod == VerificationMethod.biometric) {
         value = value.copyWith(step: AttendanceStep.verifyingIdentity);
         final authenticated = await biometricService!.authenticate();
@@ -139,6 +148,10 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
           );
           return;
         }
+      } else if (config.verificationMethod == VerificationMethod.selfie) {
+        value = value.copyWith(step: AttendanceStep.verifyingIdentity);
+        final photo = await cameraService!.takePhoto();
+        verificationData = base64Encode(photo.bytes);
       }
 
       // Step 8: Build record
@@ -153,6 +166,7 @@ class AttendanceController extends ValueNotifier<AttendanceState> {
         latitude: position?.latitude ?? 0,
         longitude: position?.longitude ?? 0,
         verificationMethod: config.verificationMethod,
+        verificationData: verificationData,
         deviceInfo: position != null
             ? DeviceInfo(
                 deviceTimestamp: now,

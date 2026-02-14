@@ -1,6 +1,9 @@
 // Test file: non-const constructors used for testing value equality.
 // ignore_for_file: prefer_const_constructors
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:attendance_mobile/attendance_mobile.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -11,6 +14,8 @@ class MockLocationService extends Mock implements LocationService {}
 
 class MockBiometricService extends Mock implements BiometricService {}
 
+class MockCameraService extends Mock implements CameraService {}
+
 class MockAttendanceRepository extends Mock implements AttendanceRepository {}
 
 class FakeAttendanceRecord extends Fake implements AttendanceRecord {}
@@ -19,6 +24,7 @@ void main() {
   late MockQrService qrService;
   late MockLocationService locationService;
   late MockBiometricService biometricService;
+  late MockCameraService cameraService;
   late MockAttendanceRepository repository;
 
   const point = AttendancePoint(
@@ -51,6 +57,7 @@ void main() {
     qrService = MockQrService();
     locationService = MockLocationService();
     biometricService = MockBiometricService();
+    cameraService = MockCameraService();
     repository = MockAttendanceRepository();
   });
 
@@ -62,6 +69,7 @@ void main() {
     ),
     CheckType checkType = CheckType.checkIn,
     AttendancePointResolver? pointResolver,
+    CameraService? cameraServiceOverride,
   }) {
     return AttendanceController(
       config: config,
@@ -71,6 +79,7 @@ void main() {
       qrService: qrService,
       locationService: locationService,
       biometricService: biometricService,
+      cameraService: cameraServiceOverride ?? cameraService,
       pointResolver: pointResolver ?? (_) async => point,
     );
   }
@@ -370,6 +379,119 @@ void main() {
 
       expect(controller.value.step, AttendanceStep.completed);
       verifyNever(() => biometricService.authenticate());
+      addTeardownLater(controller);
+    });
+
+    test('full flow with selfie completes successfully', () async {
+      final photoBytes = Uint8List.fromList([1, 2, 3, 4, 5]);
+      final photo = PhotoCapture(
+        bytes: photoBytes,
+        mimeType: 'image/jpeg',
+        timestamp: DateTime(2024),
+      );
+
+      when(() => qrService.scan()).thenAnswer((_) async => qrResult);
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => locationService.getCurrentPosition(),
+      ).thenAnswer((_) async => validPosition);
+      when(() => cameraService.takePhoto()).thenAnswer((_) async => photo);
+      when(
+        () => repository.submitAttendance(any()),
+      ).thenAnswer((_) async => AttendanceResult.success());
+
+      final controller = createController(
+        config: AttendanceConfig(
+          requireQr: true,
+          requireGeolocation: true,
+          verificationMethod: VerificationMethod.selfie,
+        ),
+      );
+      await controller.startFlow();
+
+      expect(controller.value.step, AttendanceStep.completed);
+      expect(controller.value.record, isNotNull);
+      expect(
+        controller.value.record!.verificationData,
+        base64Encode(photoBytes),
+      );
+      verify(() => cameraService.takePhoto()).called(1);
+      verifyNever(() => biometricService.authenticate());
+      addTeardownLater(controller);
+    });
+
+    test('stops at error when camera throws', () async {
+      when(() => qrService.scan()).thenAnswer((_) async => qrResult);
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => locationService.getCurrentPosition(),
+      ).thenAnswer((_) async => validPosition);
+      when(
+        () => cameraService.takePhoto(),
+      ).thenThrow(Exception('Camera failed'));
+
+      final controller = createController(
+        config: AttendanceConfig(
+          requireQr: true,
+          requireGeolocation: true,
+          verificationMethod: VerificationMethod.selfie,
+        ),
+      );
+      await controller.startFlow();
+
+      expect(controller.value.step, AttendanceStep.error);
+      expect(controller.value.errors.first, contains('UNEXPECTED_ERROR'));
+      addTeardownLater(controller);
+    });
+
+    test('skips camera when verificationMethod is biometric', () async {
+      when(() => qrService.scan()).thenAnswer((_) async => qrResult);
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => locationService.getCurrentPosition(),
+      ).thenAnswer((_) async => validPosition);
+      when(() => biometricService.authenticate()).thenAnswer((_) async => true);
+      when(
+        () => repository.submitAttendance(any()),
+      ).thenAnswer((_) async => AttendanceResult.success());
+
+      final controller = createController();
+      await controller.startFlow();
+
+      expect(controller.value.step, AttendanceStep.completed);
+      verifyNever(() => cameraService.takePhoto());
+      addTeardownLater(controller);
+    });
+
+    test('skips camera when verificationMethod is none', () async {
+      when(() => qrService.scan()).thenAnswer((_) async => qrResult);
+      when(
+        () => repository.getLastRecord(any(), any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => locationService.getCurrentPosition(),
+      ).thenAnswer((_) async => validPosition);
+      when(
+        () => repository.submitAttendance(any()),
+      ).thenAnswer((_) async => AttendanceResult.success());
+
+      final controller = createController(
+        config: AttendanceConfig(
+          requireQr: true,
+          requireGeolocation: true,
+          verificationMethod: VerificationMethod.none,
+        ),
+      );
+      await controller.startFlow();
+
+      expect(controller.value.step, AttendanceStep.completed);
+      verifyNever(() => cameraService.takePhoto());
       addTeardownLater(controller);
     });
 

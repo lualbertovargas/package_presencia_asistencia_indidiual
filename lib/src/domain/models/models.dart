@@ -5,5 +5,6 @@ export 'attendance_result.dart';
 export 'check_type.dart';
 export 'device_info.dart';
 export 'geo_position.dart';
+export 'photo_capture.dart';
 export 'qr_result.dart';
 export 'verification_method.dart';
